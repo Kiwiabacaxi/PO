@@ -4,7 +4,7 @@ o { color: Orange }
 g { color: Green }
 </style>
 
-# <r>PO</r>
+<r># PO</r>
 
 Olá! Seja bem-vindo(a) ao meu repositório sobre a aula de Pesquisa e Ordenação. Neste curso, aprendemos sobre técnicas e algoritmos para buscar e organizar informações em conjuntos de dados.
 
