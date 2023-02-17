@@ -259,7 +259,7 @@ int main(){
     }
  */
 
-    arvore->raiz = abb_insere(arvore->raiz, 10);
+/*     arvore->raiz = abb_insere(arvore->raiz, 10);
     arvore->raiz = abb_insere(arvore->raiz, 5);
     arvore->raiz = abb_insere(arvore->raiz, 15);
     arvore->raiz = abb_insere(arvore->raiz, 3);
@@ -268,7 +268,15 @@ int main(){
     arvore->raiz = abb_insere(arvore->raiz, 18);
     arvore->raiz = abb_insere(arvore->raiz, 1);
     arvore->raiz = abb_insere(arvore->raiz, 4);
+    arvore->raiz = abb_insere(arvore->raiz, 6); */
+
     arvore->raiz = abb_insere(arvore->raiz, 6);
+    arvore->raiz = abb_insere(arvore->raiz, 2);
+    arvore->raiz = abb_insere(arvore->raiz, 3);
+    arvore->raiz = abb_insere(arvore->raiz, 50);
+    arvore->raiz = abb_insere(arvore->raiz, 5);
+    arvore->raiz = abb_insere(arvore->raiz, 7);
+    arvore->raiz = abb_insere(arvore->raiz, 8);
 
     // 10,5,15,3,7,12,18,1,4,6
 /*     // exibir em ordem RECURSIVO
