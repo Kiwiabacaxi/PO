@@ -205,7 +205,7 @@ void imprimir_nivel_fb(Noavl *no, int nivel) {
     if (no == NULL)
         return;
     if (nivel == 0)
-        printf("%d ", no->fb);
+        printf("%d ", no->info);
     else {
         imprimir_nivel_fb(no->esq, nivel-1);
         imprimir_nivel_fb(no->dir, nivel-1);
@@ -319,18 +319,19 @@ void printFB(Noavl* raiz) {
     while (!isEmpty(fila)) {
         int n = sizeQueue(fila);
         printf("Nivel %d: ", nivel_atual);
+        Noavl* no_atual = NULL;
 
         // Percorre todos os nós do nível atual
         for (int i = 0; i < n; i++) {
-            Noavl* no_atual = dequeue(fila);
+            no_atual = insercao_geral(no_atual, dequeue(fila));
             printf("%d ", no_atual->info);
 
             // Adiciona os filhos do nó atual na fila, se eles existirem
             if (no_atual->esq != NULL) {
-                enqueue(fila, no_atual->esq);
+                enqueue(fila, no_atual->esq->info);
             }
             if (no_atual->dir != NULL) {
-                enqueue(fila, no_atual->dir);
+                enqueue(fila, no_atual->dir->info);
             }
         }
 
@@ -374,13 +375,14 @@ int main(){
     // imprimir as linhas e colunas da arvore
 
 /*     for(int i = 0; i <= altura(tree); i++){
-        imprimir_nivel_info(tree, i);
-        printf(" \n");
+        //imprimir_nivel_info(tree, i);
+        printFB(tree);
+        //printf(" \n");
     } */
 
-    printFB(tree);
+    //printFB(tree);
 
-    //imprimir_fb(tree);
+    imprimir_fb(tree);
 
 
 
