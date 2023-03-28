@@ -337,6 +337,11 @@ Listad* insere_ordem_listad(Listad *L, void* valor){
     return L;
 }
 
+//
+int get_valor_chave(Nod* aux){
+    Chave *chave = (Chave*)aux->info;
+    return chave->valor;
+}
 // ----------------------------------------------------- ARVORE B -----------------------------------------------------
 Arvoreb* cria_arvoreb(int ordem){
     Arvoreb *nova=(Arvoreb*)malloc(sizeof(Arvoreb));
