@@ -228,33 +228,103 @@ Listad* divide_lista2(Listad *L, int n){
     
 }
 
-// funcao que insere na lista em ordem
-Listad* insere_ordem_listad(Listad *L, void* valor){
+// backup
+/* Listad* insere_ordem_listad(Listad *L, void* valor){
     Nod *novo = cria_nod(valor);
     Nod *aux = L->ini;
+    //(int*)aux->info = 0;
+    //(chave*)aux->info = 0;
+    Chave *chave = (Chave*)novo->info;
 
+    // caso a lista esteja vazia
     if (L == NULL){
         L = cria_listad();
         L->ini = L->fim = novo;
     }
+
+    // caso a lista nao esteja vazia
     else{
+
+        // caso a lista tenha apenas um elemento
         if (L->ini == NULL)
             L->ini = L->fim = novo;
+
+        // caso a lista tenha mais de um elemento
         else{
+            // percorre a lista ate encontrar o elemento maior que o novo
             while (aux != NULL && *(int*)aux->info < *(int*)novo->info)
                 aux = aux->prox;
-
+            // caso o novo elemento seja o menor da lista
             if (aux == NULL){
                 novo->ant = L->fim;
                 L->fim->prox = novo;
                 L->fim = novo;
             }
+            // caso o novo elemento nao seja o menor da lista
             else{
+                // caso o novo elemento seja o maior da lista
                 if (aux->ant == NULL){
                     novo->prox = L->ini;
                     L->ini->ant = novo;
                     L->ini = novo;
                 }
+                // caso o novo elemento nao seja o maior da lista
+                else{
+                    novo->ant = aux->ant;
+                    novo->prox = aux;
+                    aux->ant->prox = novo;
+                    aux->ant = novo;
+                }
+            }
+        }
+    }
+    return L;
+} */
+
+// funcao que insere na lista em ordem
+Listad* insere_ordem_listad(Listad *L, void* valor){
+    Nod *novo = cria_nod(valor);
+    Nod *aux = L->ini;
+
+    //(int*)aux->info = 0;
+    //(chave*)aux->info = 0;
+    Chave *chave = (Chave*)novo->info;
+
+    // caso a lista esteja vazia
+    if (L == NULL){
+        L = cria_listad();
+        L->ini = L->fim = novo;
+    }
+
+    // caso a lista nao esteja vazia
+    else{
+
+        // caso a lista tenha apenas um elemento
+        if (L->ini == NULL)
+            L->ini = L->fim = novo;
+
+        // caso a lista tenha mais de um elemento
+        else{
+            // percorre a lista ate encontrar o elemento maior que o novo
+            while (aux != NULL && *(int*)aux->info < *(int*)novo->info)
+                aux = aux->prox;
+           /*  while (aux != NULL && (Chave*)aux->info < (Chave*)novo->info)
+                aux = aux->prox; */
+            // caso o novo elemento seja o menor da lista
+            if (aux == NULL){
+                novo->ant = L->fim;
+                L->fim->prox = novo;
+                L->fim = novo;
+            }
+            // caso o novo elemento nao seja o menor da lista
+            else{
+                // caso o novo elemento seja o maior da lista
+                if (aux->ant == NULL){
+                    novo->prox = L->ini;
+                    L->ini->ant = novo;
+                    L->ini = novo;
+                }
+                // caso o novo elemento nao seja o maior da lista
                 else{
                     novo->ant = aux->ant;
                     novo->prox = aux;
