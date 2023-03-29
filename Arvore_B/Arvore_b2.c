@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 typedef struct nod{
     void* info;
     struct nod *ant;
@@ -149,7 +147,6 @@ Listad* libera_listad(Listad *L){
 
     while (aux != NULL){
         L->ini = L->ini->prox;
-        free(aux->info);
         free(aux);
         aux = L->ini;
     }
@@ -282,55 +279,46 @@ Listad* divide_lista2(Listad *L, int n){
 } */
 
 // funcao que insere na lista em ordem
-Listad* insere_ordem_listad(Listad *L, void* valor){
-    Nod *novo = cria_nod(valor);
-    Nod *aux = L->ini;
-
-    //(int*)aux->info = 0;
-    //(chave*)aux->info = 0;
-    Chave *chave = (Chave*)novo->info;
+Listad* insere_ordem_listad(Listad* L, void* valor) {
+    Nod* novo = cria_nod(valor);
 
     // caso a lista esteja vazia
-    if (L == NULL){
+    if (L == NULL) {
         L = cria_listad();
         L->ini = L->fim = novo;
+        return L;
     }
 
+    Nod* aux = L->ini;
+
     // caso a lista nao esteja vazia
-    else{
-
+    if (aux == NULL) {
         // caso a lista tenha apenas um elemento
-        if (L->ini == NULL)
-            L->ini = L->fim = novo;
-
+        L->ini = L->fim = novo;
+    } else {
         // caso a lista tenha mais de um elemento
-        else{
-            // percorre a lista ate encontrar o elemento maior que o novo
-            while (aux != NULL && *(int*)aux->info < *(int*)novo->info)
-                aux = aux->prox;
-           /*  while (aux != NULL && (Chave*)aux->info < (Chave*)novo->info)
-                aux = aux->prox; */
-            // caso o novo elemento seja o menor da lista
-            if (aux == NULL){
-                novo->ant = L->fim;
-                L->fim->prox = novo;
-                L->fim = novo;
-            }
+        // percorre a lista ate encontrar o elemento maior que o novo
+        //while (aux != NULL && *(int*)aux->info < *(int*)novo->info)
+        while (aux != NULL && ((Chave*)aux->info)->valor_chave < ((Chave*)novo->info)->valor_chave)
+            aux = aux->prox;
+        // caso o novo elemento seja o menor da lista
+        if (aux == NULL) {
+            novo->ant = L->fim;
+            L->fim->prox = novo;
+            L->fim = novo;
+        } else {
             // caso o novo elemento nao seja o menor da lista
-            else{
+            if (aux->ant == NULL) {
                 // caso o novo elemento seja o maior da lista
-                if (aux->ant == NULL){
-                    novo->prox = L->ini;
-                    L->ini->ant = novo;
-                    L->ini = novo;
-                }
+                novo->prox = L->ini;
+                L->ini->ant = novo;
+                L->ini = novo;
+            } else {
                 // caso o novo elemento nao seja o maior da lista
-                else{
-                    novo->ant = aux->ant;
-                    novo->prox = aux;
-                    aux->ant->prox = novo;
-                    aux->ant = novo;
-                }
+                novo->ant = aux->ant;
+                novo->prox = aux;
+                aux->ant->prox = novo;
+                aux->ant = novo;
             }
         }
     }
@@ -340,7 +328,7 @@ Listad* insere_ordem_listad(Listad *L, void* valor){
 //
 int get_valor_chave(Nod* aux){
     Chave *chave = (Chave*)aux->info;
-    return chave->valor;
+    return chave->valor_chave;
 }
 // ----------------------------------------------------- ARVORE B -----------------------------------------------------
 Arvoreb* cria_arvoreb(int ordem){
@@ -363,84 +351,65 @@ Nob* cria_nob(){
     return novo;
 }
 
-// funcao que insere n
-
+// funcao que insere na arvore
 // funcao que insere uma chave na arvore
 // insere_arvoreb(tree,vet[i])
-Arvoreb* insere_arvoreb(Arvoreb *tree, int chave){
+void insere_arvoreb(Arvoreb *tree, int valor){
     Nob *raiz = tree->raiz;
-    Nob *novo = cria_nob();
-    Listad *lista = cria_listad();
-    int i, tam;
-
+    // caso a arvore esteja vazia
     if (raiz == NULL){
-        insere_fim_listad(novo->lista_chaves, &chave);
-        novo->qtd_chaves++;
-        tree->raiz = novo;
-        tree->altura++;
+        raiz = cria_nob();
+        raiz->folha = 1;
+        raiz->pai = NULL;
+        raiz->qtd_chaves = 1;
+        Chave *chave = (Chave*)malloc(sizeof(Chave));
+        chave->valor_chave = valor;
+        chave->ponteiro = NULL;
+        insere_ordem_listad(raiz->lista_chaves, chave);
+        tree->raiz = raiz;
     }
+    // caso a arvore nao esteja vazia
     else{
-        if (raiz->folha == 1){
-            insere_fim_listad(raiz->lista_chaves, &chave);
+        // caso a raiz nao esteja cheia
+        if (raiz->qtd_chaves < tree->ordem-1){
+            Chave *chave = (Chave*)malloc(sizeof(Chave));
+            chave->valor_chave = valor;
+            chave->filho = NULL;
+            insere_ordem_listad(raiz->lista_chaves, chave);
             raiz->qtd_chaves++;
-            if (raiz->qtd_chaves == tree->ordem){
-                // dividir a raiz
-                Nob *novo = cria_nob();
-                Listad *lista = divide_listad(raiz->lista_chaves);
-                novo->folha = 1;
-                novo->qtd_chaves = tamanho_listad(lista);
-                novo->lista_chaves = lista;
-                novo->pai = raiz->pai;
-                raiz->qtd_chaves = tamanho_listad(raiz->lista_chaves);
-                raiz->folha = 1;
-                raiz->pai = novo;
-                insere_fim_listad(novo->lista_chaves, &chave);
-                novo->qtd_chaves++;
-                tree->raiz = novo;
-                tree->altura++;
-            }
         }
+        // caso a raiz esteja cheia
         else{
-            Nob *aux = raiz;
-            while (aux->folha != 1){
-                tam = tamanho_listad(aux->lista_chaves);
-                for (i=0; i<tam; i++){
-                    if (chave < *(int*)aux->lista_chaves->ini->info){
-                        aux = aux->lista_chaves->ini->info;
-                        break;
-                    }
-                    else if (chave > *(int*)aux->lista_chaves->fim->info){
-                        aux = aux->lista_chaves->fim->info;
-                        break;
-                    }
-                    else if (chave > *(int*)aux->lista_chaves->ini->info && chave < *(int*)aux->lista_chaves->fim->info){
-                        aux = aux->lista_chaves->ini->prox->info;
-                        break;
-                    }
-                }
-            }
-            insere_fim_listad(aux->lista_chaves, &chave);
-            aux->qtd_chaves++;
-            if (aux->qtd_chaves == tree->ordem){
-                // dividir o no
-                Nob *novo = cria_nob();
-                Listad *lista = divide_listad(aux->lista_chaves);
-                novo->folha = 1;
-                novo->qtd_chaves = tamanho_listad(lista);
-                novo->lista_chaves = lista;
-                novo->pai = aux->pai;
-                aux->qtd_chaves = tamanho_listad(aux->lista_chaves);
-                aux->folha = 1;
-                aux->pai = novo;
-                insere_fim_listad(novo->lista_chaves, &chave);
-                novo->qtd_chaves++;
-                tree->raiz = novo;
-                tree->altura++;
-            }
+            Nob *nova_raiz = cria_nob();
+            nova_raiz->folha = 0;
+            nova_raiz->pai = NULL;
+            nova_raiz->qtd_chaves = 0;
+            nova_raiz->lista_chaves = cria_listad();
+            nova_raiz->filhos[0] = raiz;
+            raiz->pai = nova_raiz;
+            tree->raiz = nova_raiz;
+            split_nob(tree, nova_raiz, 0);
+            insere_nao_cheio(tree, nova_raiz, valor);
         }
     }
-    return tree;
 }
+
+// libera_nob
+void libera_nob(Nob *no){
+    if (no != NULL){
+        libera_listad(no->lista_chaves);
+        free(no);
+    }
+}
+
+// liberar a arvore
+void libera_arvoreb(Arvoreb *tree){
+    if (tree != NULL){
+        libera_nob(tree->raiz);
+        free(tree);
+    }
+}
+
 
 // ----------------------------------------------------
 
@@ -468,6 +437,11 @@ int main(){
         tree=insere_arvoreb(tree,vet[i]);
     }
 
+
+    // limpar a arvore
+    libera_arvoreb(tree);
+
+/*     
     // criar a lista
     Listad *lista = cria_listad();
 
@@ -487,10 +461,7 @@ int main(){
     imprime_listad(lista2);
 
     // limpar a lista
-    //libera_listad(lista);
+    libera_listad(lista); */
 
-
-
-    //tree=libera_arvoreb(tree);
     return 0;
 }
