@@ -18,6 +18,7 @@ typedef struct nob{
     int qtd_chaves;
     struct nob* pai;
     Listad *lista_chaves;
+    //struct nob* filhos;
 }Nob;
 
 typedef struct chave{
@@ -47,7 +48,6 @@ Nod* cria_nod(void* valor){
     return novo;
 }
 
-
 Listad* insere_inicio_listad(Listad *L, void* valor){
     Nod *novo= cria_nod(valor);
 
@@ -69,7 +69,6 @@ Listad* insere_inicio_listad(Listad *L, void* valor){
     return L;
 
 }
-
 
 Listad* insere_fim_listad(Listad* L, void* valor){
     Nod *novo = cria_nod(valor);
@@ -96,8 +95,6 @@ Listad* insere_fim_listad(Listad* L, void* valor){
     }
     return L;
 }
-
-
 
 void* remove_inicio_listad(Listad *L){
     Nod* aux;
@@ -330,6 +327,13 @@ int get_valor_chave(Nod* aux){
     Chave *chave = (Chave*)aux->info;
     return chave->valor_chave;
 }
+
+// funcao que cria_chave 
+Chave* cria_chave(int valor_chave){
+    Chave *nova = (Chave*)malloc(sizeof(Chave));
+    nova->valor_chave = valor_chave;
+    return nova;
+}
 // ----------------------------------------------------- ARVORE B -----------------------------------------------------
 Arvoreb* cria_arvoreb(int ordem){
     Arvoreb *nova=(Arvoreb*)malloc(sizeof(Arvoreb));
@@ -347,14 +351,14 @@ Nob* cria_nob(){
     novo->pai = NULL;
     novo->qtd_chaves = 0;
     novo->lista_chaves = cria_listad();
+
+    //novo->filhos = (Nob*)malloc(sizeof(Nob));
    
     return novo;
 }
 
-// funcao que insere na arvore
-// funcao que insere uma chave na arvore
-// insere_arvoreb(tree,vet[i])
-void insere_arvoreb(Arvoreb *tree, int valor){
+// backup (???)
+/* void insere_arvoreb(Arvoreb *tree, int valor){
     Nob *raiz = tree->raiz;
     // caso a arvore esteja vazia
     if (raiz == NULL){
@@ -392,6 +396,81 @@ void insere_arvoreb(Arvoreb *tree, int valor){
             insere_nao_cheio(tree, nova_raiz, valor);
         }
     }
+} */
+
+// backup2 (split_nob)
+/* Arvoreb *insere_arvoreb(Arvoreb *tree, int valor){
+    Nob *raiz = tree->raiz;
+    // caso a arvore esteja vazia
+    if (raiz == NULL){
+        raiz = cria_nob();
+        raiz->folha = 1;
+        raiz->pai = NULL;
+        raiz->qtd_chaves = 1;
+        raiz->lista_chaves = insere_ordem_listad(raiz->lista_chaves, cria_chave(valor));
+        tree->raiz = raiz;
+    }
+    // caso a arvore nao esteja vazia
+    else{
+        // caso a raiz esteja cheia
+        if (raiz->qtd_chaves == tree->ordem-1){
+            Nob *nova_raiz = cria_nob();
+            nova_raiz->folha = 0;
+            nova_raiz->pai = NULL;
+            nova_raiz->qtd_chaves = 0;
+            nova_raiz->lista_chaves = cria_listad();
+            //nova_raiz->filhos = (Nob*)malloc(sizeof(Nob));
+            //nova_raiz->filhos[0] = raiz;
+            raiz->pai = nova_raiz;
+            tree->raiz = nova_raiz;
+            split_nob(tree, nova_raiz, 0);
+            insere_nao_cheio(tree, nova_raiz, valor);
+        }
+        // caso a raiz nao esteja cheia
+        else
+            insere_nao_cheio(tree, raiz, valor);
+    }
+    return tree;
+} */
+
+// funcao que insere na arvore
+// funcao que insere uma chave na arvore B, quando tiver que ser feito a divisao dividir a lista usando a funcao divide_listad
+// insere arvoreb apartir da lista
+Arvoreb *insere_arvoreb(Arvoreb *tree, int valor){
+    Nob *raiz = tree->raiz;
+    // inicializar a lista
+    Listad *lista = cria_listad();
+    // caso a arvore esteja vazia
+    if (raiz == NULL){
+        raiz = cria_nob();
+        raiz->folha = 1;
+        raiz->pai = NULL;
+        raiz->qtd_chaves = 1;
+        raiz->lista_chaves = insere_ordem_listad(raiz->lista_chaves, cria_chave(valor));
+        tree->raiz = raiz;
+    }
+    // caso a arvore nao esteja vazia
+    else{
+        // caso a raiz esteja cheia
+        if (raiz->qtd_chaves == tree->ordem-1){
+            Nob *nova_raiz = cria_nob();
+            nova_raiz->folha = 0;
+            nova_raiz->pai = NULL;
+            nova_raiz->qtd_chaves = 0;
+            nova_raiz->lista_chaves = cria_listad();
+            //nova_raiz->filhos = (Nob*)malloc(sizeof(Nob));
+            //nova_raiz->filhos[0] = raiz;
+            raiz->pai = nova_raiz;
+            tree->raiz = nova_raiz;
+            // dividr a lista
+            lista = divide_listad(raiz->lista_chaves);
+            insere_nao_cheio(tree, nova_raiz, valor);
+        }
+        // caso a raiz nao esteja cheia
+        else
+            insere_nao_cheio(tree, raiz, valor);
+    }
+    return tree;
 }
 
 // libera_nob
@@ -411,7 +490,7 @@ void libera_arvoreb(Arvoreb *tree){
 }
 
 
-// ----------------------------------------------------
+// ---------------------------------------------------- MAIN ----------------------------------------------------
 
 Arvoreb* cria_arvoreb(int ordem);
 Nob* cria_nob();
