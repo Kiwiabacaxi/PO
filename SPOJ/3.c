@@ -63,9 +63,10 @@ Um vértice é vermelho se for infectado antes do segundo anterior.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // limite do inteiro
-#define MAX_INT 200000
+#define MAX_INT 250000
 
 
 // maior valor entre dois inteiros
@@ -76,6 +77,16 @@ int max(int x, int y){
     }
     // se não, retorna y
     return y;
+}
+
+// cmpfunc para ordenar o vetor
+int cmpfunc(const void *a, const void *b){
+    return (*(int*)a - *(int*)b);
+}
+
+// cmpfunc_reverse para ordenar o vetor em ordem decrescente
+int cmpfunc_reverse(const void *a, const void *b){
+    return *(int*)b - *(int*)a;
 }
 
 
@@ -136,6 +147,8 @@ void inverter(int *vetor, int inicio, int fim){
     }
 }
 
+
+
 int main(){
 
     // leitura do número de casos de teste
@@ -145,7 +158,7 @@ int main(){
 
 
 
-    for(int i = 0; i < t; i++){
+    while(t--){
         // leitura do número de vértices
         int n;
         scanf("%d", &n);
@@ -153,17 +166,19 @@ int main(){
         int resposta = 0;
         int vetor[MAX_INT];
 
+
         // zerar o vetor
-        for(int j = 0; j < n; j++){
+/*         for(int j = 0; j < n; j++){
             vetor[j] = 0;
-        }
+        } */
+        memset(vetor, 0, sizeof(vetor));
         
         // segunda linha (de parentesco)
-        int parente = 0;
+        int parente;
         int aux = 0;
         // leitura dos vértices
         // loop para ler os n-1 vértices
-        for(int j = 1; j < n; j++){   // for loop para ler os n-1 vértices
+        for(int i = 1; i < n; i++){   // for loop para ler os n-1 vértices
             scanf("%d", &parente);
 
             if(vetor[parente-1] == 0){  // checa se o parente nao tem filhos
@@ -173,35 +188,45 @@ int main(){
             vetor[parente-1]++;         // aumenta o numero de mininu
         }
 
-        // ordenar o vetor em ordem decrescente
+/*         // ordenar o vetor em ordem decrescente
         quicksort(vetor, 0, n-1);
         // inverter o vetor
-        inverter(vetor, 0, n-1);
+        inverter(vetor, 0, n-1); */
+        qsort(vetor, n, sizeof(int), cmpfunc_reverse);
 
         int maior = 0; // maior numero de elementos iguais
         int index_maior = 0; // indice do maior numero de elementos iguais
         int len = 0;    // tamanho do vetor
 
-        for(int j = 0; j < n; j++){
+        for(int i = 0; i < n; i++){
 
             // se o numero de filhos for maior que 0
-            if(vetor[j] > 0) {
-                vetor[j] -= aux -1; // diminui o numero de filhos do parente
-                vetor[j] = max(0, vetor[j]); // se o numero de filhos for negativo, torna 0
+            if(vetor[i] > 0) {
+                // o certo e -= aux - i, porque ele vale pra casos extremos
+                vetor[i] -= aux -i; // (*****aux -1 = erro em caso grande pqp)diminui o numero de filhos do parente
+                
+                
+                vetor[i] = max(0, vetor[i]); // se o numero de filhos for negativo, torna 0
                 resposta++; // aumenta o numero de segundos
             
-                if(vetor[j] > maior){ // se o numero de filhos for maior que o maior numero de filhos
-                    maior = vetor[j]; // atualiza o maior numero de filhos
-                    index_maior = j; // atualiza o indice do maior numero de filhos
+                if(vetor[i] > maior){ // se o numero de filhos for maior que o maior numero de filhos
+                    maior = vetor[i]; // atualiza o maior numero de filhos
+                    index_maior = i; // atualiza o indice do maior numero de filhos
                 }
+                
+            }
+
+            if(vetor[i] > 0){
                 len++;
             }
+
         }
 
-        // ordenar o vetor em ordem - caso seja necessario, em um caso de teste
+/*         // ordenar o vetor em ordem - caso seja necessario, em um caso de teste
         quicksort(vetor, 0, n-1);
         // inverter o vetor - caso seja necessario
-        inverter(vetor, 0, n-1);
+        inverter(vetor, 0, n-1); */
+        qsort(vetor, n, sizeof(int), cmpfunc_reverse);
 
         // enquanto o maior numero de filhos for maior que 0
         while(maior > 0) {
