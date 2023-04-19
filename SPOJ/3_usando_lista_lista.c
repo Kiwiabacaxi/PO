@@ -109,13 +109,10 @@ typedef struct listad{
 
 // struct arvore n 
 typedef struct arvn {
-    int info;
-    // quantidade de filhos
-    int qtd;
-    // se estiver infectado
-    bool infectado; // 0 = não, 1 = sim
-    // aponta para a lista
-    struct listad *filhos;
+    int info; 
+    int qtd; // quantidade de filhos
+    bool infectado; // se estiver infectado 0 = não, 1 = sim
+    Listad *filhos; // aponta para a lista
 } ArvN;
 
 // ---------------------------// LISTA D
@@ -303,6 +300,36 @@ void libera_listad(Listad *L){
     free(L);
 }
 
+// insere_ordenado_listad
+Listad *insere_ordenado_listad(Listad *lista_nos, int valor){
+    Nod *novo = cria_nod(valor);
+    Nod *aux = lista_nos->ini;
+
+    if (lista_nos == NULL)
+    {
+        lista_nos = cria_listad();
+        lista_nos->ini = lista_nos->fim = novo;
+    }
+    else
+    {
+        if (lista_nos->ini == NULL)
+            lista_nos->ini = lista_nos->fim = novo;
+        else
+        {
+            while(aux != NULL && aux->info < valor)
+                aux = aux->prox;
+
+            if (aux == NULL)
+                lista_nos = insere_fim_listad(lista_nos, valor);
+            else if (aux == lista_nos->ini)
+                lista_nos = insere_inicio_listad(lista_nos, valor);
+            else
+                insere_apos_elemento(lista_nos, valor, aux->ant->info);
+        }
+    }
+    return lista_nos;
+}
+
 // ---------------------------// operaçoes arvore
 
 // compara
@@ -355,6 +382,8 @@ ArvN* insere_arvN(ArvN* raiz, int pai, int filho){
     return raiz;
 }
 
+
+
 int *vetor;
 
 // define MAX_INT
@@ -384,9 +413,16 @@ int main(){
         // cria a arvore
         ArvN* arvore = NULL;
 
-        // insere os elementos na arvore
+        // insere ordenado na arvore
         for(int i = 0; i < n; i++){
             arvore = insere_arvN(arvore, vetor[i], vetor[i+1]);
+            i++;
+        }
+
+        // mostra a arvore
+        while(arvore->filhos->ini != NULL){
+            printf("%d ", arvore->filhos->ini->info);
+            arvore->filhos->ini = arvore->filhos->ini->prox;
         }
 
         // mostra a arvore
