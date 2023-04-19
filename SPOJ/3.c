@@ -63,10 +63,9 @@ Um vértice é vermelho se for infectado antes do segundo anterior.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
 // limite do inteiro
 #define MAX_INT 250000
+
 
 
 // maior valor entre dois inteiros
@@ -79,36 +78,24 @@ int max(int x, int y){
     return y;
 }
 
-// cmpfunc para ordenar o vetor
-int cmpfunc(const void *a, const void *b){
-    return (*(int*)a - *(int*)b);
-}
-
-// cmpfunc_reverse para ordenar o vetor em ordem decrescente
-int cmpfunc_reverse(const void *a, const void *b){
-    return *(int*)b - *(int*)a;
-}
-
-
 // funcao quicksort para ordenar um vetor
 void quicksort(int *vetor, int inicio, int fim){
     // se o inicio for menor que o fim
     if(inicio < fim){
-        // pivo recebe o inicio
-        int pivo = inicio;
-        // i recebe o inicio + 1
-        int i = inicio + 1;
-        // j recebe o fim
+        // pivo
+        int pivo = vetor[(inicio+fim)/2];
+        // variaveis auxiliares
+        int i = inicio;
         int j = fim;
-        // enquanto i for menor que j
+        // loop para percorrer o vetor
         while(i <= j){
-            // enquanto o valor de vetor[i] for menor que o valor de vetor[pivo]
-            while(vetor[i] < vetor[pivo]){
+            // enquanto o valor de vetor[i] for menor que o pivo
+            while(vetor[i] < pivo){
                 // incrementa i
                 i++;
             }
-            // enquanto o valor de vetor[j] for maior que o valor de vetor[pivo]
-            while(vetor[j] > vetor[pivo]){
+            // enquanto o valor de vetor[j] for maior que o pivo
+            while(vetor[j] > pivo){
                 // decrementa j
                 j--;
             }
@@ -118,19 +105,14 @@ void quicksort(int *vetor, int inicio, int fim){
                 int aux = vetor[i];
                 vetor[i] = vetor[j];
                 vetor[j] = aux;
-                // incrementa i
+                // incrementa i e decrementa j
                 i++;
-                // decrementa j
                 j--;
             }
         }
-        // troca os valores de vetor[pivo] e vetor[j]
-        int aux = vetor[pivo];
-        vetor[pivo] = vetor[j];
-        vetor[j] = aux;
         // recursão
-        quicksort(vetor, inicio, j-1);
-        quicksort(vetor, j+1, fim);
+        quicksort(vetor, inicio, j);
+        quicksort(vetor, i, fim);
     }
 }
 
@@ -149,6 +131,9 @@ void inverter(int *vetor, int inicio, int fim){
 
 
 
+// vetor dinâmico
+int *vetor;
+
 int main(){
 
     // leitura do número de casos de teste
@@ -156,22 +141,21 @@ int main(){
     scanf("%d", &t);
 
 
-
-
-    while(t--){
+    for(int k = 0; k < t; k++){
         // leitura do número de vértices
         int n;
         scanf("%d", &n);
 
         int resposta = 0;
-        int vetor[MAX_INT];
+        //int vetor[MAX_INT];
+        // inicializa o vetor dinâmico
+        vetor = (int*)malloc(MAX_INT*sizeof(int));
 
 
         // zerar o vetor
-/*         for(int j = 0; j < n; j++){
+        for(int j = 0; j < n; j++){
             vetor[j] = 0;
-        } */
-        memset(vetor, 0, sizeof(vetor));
+        }
         
         // segunda linha (de parentesco)
         int parente;
@@ -188,11 +172,10 @@ int main(){
             vetor[parente-1]++;         // aumenta o numero de mininu
         }
 
-/*         // ordenar o vetor em ordem decrescente
+        // ordenar o vetor em ordem decrescente
         quicksort(vetor, 0, n-1);
         // inverter o vetor
-        inverter(vetor, 0, n-1); */
-        qsort(vetor, n, sizeof(int), cmpfunc_reverse);
+        inverter(vetor, 0, n-1);
 
         int maior = 0; // maior numero de elementos iguais
         int index_maior = 0; // indice do maior numero de elementos iguais
@@ -222,11 +205,11 @@ int main(){
 
         }
 
-/*         // ordenar o vetor em ordem - caso seja necessario, em um caso de teste
+        // ordenar o vetor em ordem - caso seja necessario, em um caso de teste
         quicksort(vetor, 0, n-1);
         // inverter o vetor - caso seja necessario
-        inverter(vetor, 0, n-1); */
-        qsort(vetor, n, sizeof(int), cmpfunc_reverse);
+        inverter(vetor, 0, n-1);
+
 
         // enquanto o maior numero de filhos for maior que 0
         while(maior > 0) {
@@ -256,6 +239,10 @@ int main(){
             }
         }
 
+        // resetar o vetor dinamico
+        free(vetor);
+
+        // imprimir o resultado
         printf("%d", resposta + 1); // Adiciona 1 ao resultado final, porque o primeiro segundo nao conta
         printf("\n");
     }
