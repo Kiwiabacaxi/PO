@@ -75,13 +75,11 @@ For each test case you should output a single integer — the minimal number of 
 #include <math.h>
 
 typedef struct nod {
-    struct arvn *numero_vertice; // aponta para o nó
     int info;
     struct nod *ant;
     struct nod *prox;
 } Nod;
 
-    
 typedef struct listad{
     Nod *ini;
     Nod *fim;
@@ -90,11 +88,8 @@ typedef struct listad{
 
 typedef struct arvn {
     int vertice; // 1 2 3 4 5 6 7 8 9 10... , 1 = raiz
-    // aponta para os seus filhos
-    
-
     int qtd_filhos; // quantidade de filhos
-    bool infectado; // se estiver infectado 0 = não, 1 = sim, apenas infectados podem dar spread
+    bool infectado; // se estiver infectado 0 = não, 1 = sim
     int nivel; // qual o nivel que ele esta
     Listad *filhos; // aponta para a lista
 } ArvN;
@@ -185,7 +180,6 @@ int remover_fim(Listad *lista) {
     lista->tam--;
     return info;
 }
-
 // eh vazia
 bool eh_vazia(Listad *lista) {
     return lista->ini == NULL;
@@ -232,26 +226,8 @@ ArvN *criar_arvore(int numero_vertices) {
 
 // adicionar filhos
 void adicionar_filhos(ArvN *arvore, int pai, int filho) {
-/*     // ordenar - pai sempre menor que filho
-    if (pai > filho) {
-        int aux = pai;
-        pai = filho;
-        filho = aux;
-    } */
-    // adicionar
-
     inserir_fim(arvore[pai - 1].filhos, filho);
     arvore[pai - 1].qtd_filhos++;
-}
-
-// busca na arvore
-void busca_arvore(ArvN *arvore, int numero_vertices, int nivel) {
-    for (int i = 0; i < numero_vertices; i++) {
-        if (arvore[i].nivel == nivel) {
-            printf("%d ", arvore[i].vertice);
-        }
-    }
-    printf("\n");
 }
 
 // imprimir arvore
@@ -302,7 +278,7 @@ int contar_nivel(ArvN *arvore, int numero_vertices) {
 }
 
 // busca em largura - deixa o nivel de cada vertice - demorou so 3 horas pra fazer essa porra 🐊🐊🐊🐊🐊🐊🐊🐊🐊🐊🐊🐊
-ArvN *bfs(ArvN *arvore, int n) {
+void bfs(ArvN *arvore, int n) {
     Listad *fila = criar_lista();
     int nivel_atual = 0;
     arvore[0].nivel = 1;
@@ -318,8 +294,7 @@ ArvN *bfs(ArvN *arvore, int n) {
         }
     }
     limpar_lista(fila);
-    return arvore;
-    // return arvore[n].nivel;
+    //return arvore[n].nivel;
 }
 
 // desinfectar a arvore
@@ -370,54 +345,114 @@ void imprimir_niveis(Listad **niveis, int n) {
 }
 
 
-// find the level with the most nodes
-int get_level_with_most_nodes(ArvN *arvore, int n) {
-    int nivel = contar_nivel(arvore, n);
-    int *qtd_nos = (int *) malloc(nivel * sizeof(int));
-    for (int i = 0; i < nivel; i++) {
-        qtd_nos[i] = 0;
-    }
+// -----------------// DEUS ME AJUDA PFV // ----------------- //
+
+// get nivel
+int get_nivel(ArvN *arvore, int n) {
+    return arvore[n].nivel;
+}
+
+// get filhos
+int get_filhos(ArvN *arvore, int n) {
+    return arvore[n].qtd_filhos;
+}
+
+// get infectado
+bool get_infectado(ArvN *arvore, int n) {
+    return arvore[n].infectado;
+}
+
+// printa se todos os vertices estao infectados
+bool printa_todos_infectados(ArvN *arvore, int n) {
     for (int i = 0; i < n; i++) {
-        qtd_nos[arvore[i].nivel - 1]++;
-    }
-    int maior = 0;
-    int nivel_maior = 0;
-    for (int i = 0; i < nivel; i++) {
-        if (qtd_nos[i] > maior) {
-            maior = qtd_nos[i];
-            nivel_maior = i;
+        if (arvore[i].infectado == false) {
+            return printf("Nem todos os vertices estao infectados\n");
         }
     }
-    return nivel_maior;
+    return printf("Todos os vertices estao infectados\n");
 }
 
-// -----------------// :?::::???? // ----------------- //
+// verifica se todos os vertices estao infectados
+bool verifica_todos_infectados(ArvN *arvore, int n) {
+    while (n > 0) {
+        if (arvore[n - 1].infectado == false) {
+            return false;
+        }
+        n--;
+    }
+    return true;
+}
 
-/* 
-ex1:
-1
-7
-1 1 1 2 2 4
-[3,2,1]
+
+// infectar apenas um vertice da lista com mais filhos
+void infectar_um_vertice_lista(ArvN *arvore, int n) {
+    Listad *lista = get_lista_mais_filhos(arvore, n);
+    Nod *no_atual = lista->ini;
+    arvore[no_atual->info - 1].infectado = true;
+}
+
+// infectar todos os vertices da lista com mais filhos
+int infectar_todos_vertices_lista_mais_filhos(ArvN *arvore, int n) {
+    Listad *lista = get_lista_mais_filhos(arvore, n);
+    Nod *no_atual = lista->ini;
+    int tempo = 0;
+    while (no_atual != NULL) {
+        arvore[no_atual->info - 1].infectado = true;
+        no_atual = no_atual->prox;
+        tempo++;
+    }
+    
+    return tempo;
+}
+
+/*
+Infecçao
+    injeta - infecta apenas um vertice
+    espalha - se o vertice estiver infectado, infecta apenas um outro vertice filho ou irmao != pai
+    
 */
 
-// retornar o numero de filho de cada vertice em um array
-int *get_qtd_filhos(ArvN *arvore, int n) {
-    int *qtd_filhos = (int *) malloc(n * sizeof(int));
-    for (int i = 0; i < n; i++) {
-        qtd_filhos[i] = arvore[i].qtd_filhos;
-    }
-    return qtd_filhos;
+// injeta
+void injeta(ArvN *arvore, int n) {
+    arvore[n].infectado = true;
 }
 
-// transformar a arvore em um array de inteiro
-int *arvore_para_array(ArvN *arvore, int n) {
-    int *array = (int *) malloc(n * sizeof(int));
-    for (int i = 0; i < n; i++) {
-        array[i] = arvore[i].vertice;
+// espalha
+void espalha(ArvN *arvore, int n) {
+    if (arvore[n].infectado == true) {
+        Nod *no_atual = arvore[n].filhos->ini;
+        while (no_atual != NULL) {
+            if (arvore[no_atual->info - 1].infectado == false) {
+                arvore[no_atual->info - 1].infectado = true;
+                break;
+            }
+            no_atual = no_atual->prox;
+        }
     }
-    return array;
 }
+
+// tempo minimo para infectar todos
+int tempo_minimo_infectar_todos(ArvN *arvore, int n) {
+    int tempo = 0;
+    while (verifica_todos_infectados(arvore, n) == false) {
+        // caso seja o primeiro infectado
+        if (tempo == 0) {
+            // infecta um vertice da lista com mais filhos
+            infectar_um_vertice_lista(arvore, n);
+            tempo ++;
+        }
+        // caso nao seja o primeiro infectado injeta e espalha
+        else {
+            // infecta um vertice da lista com mais filhos
+            infectar_um_vertice_lista(arvore, n);
+            // espalha
+            espalha(arvore, n);
+            tempo ++;
+        }
+    }
+    return tempo;
+}
+
 
 // retorna o maior valor de um array
 int max(int x, int y){
@@ -451,8 +486,6 @@ void imprimir_array(int *array, int n) {
     printf("]\n");
 }
 
-#define SIZE 200000
-
 
 /* 
 loop de testes
@@ -466,6 +499,83 @@ loop de testes
 
 */
 
+int main() {
+    // 1665C - Infection Tree (https://codeforces.com/contest/1665/problem/C)
+    
+    // numero de testes
+    int numero_testes;
+    scanf("%d", &numero_testes);
+
+    // loop de testes
+    while(numero_testes--){
+
+        // numero de vertices
+        int numero_vertices;
+        scanf("%d", &numero_vertices);
+
+        // criar arvore e a raiz é 1
+        ArvN *arvore = criar_arvore(numero_vertices);
+
+        // array para guardar os filhos numero de vertices - 1
+        int filhos[numero_vertices-1];
+        int vetor[numero_vertices-1];
+
+        // array dinamico para guardar os filhos numero de vertices - 1
+        // int *filhos = (int *) malloc((numero_vertices - 1) * sizeof(int));
+        // int *vetor = (int *) malloc((numero_vertices - 1) * sizeof(int));
+        int aux = 0;
+
+        // zerar filhos
+        memset(filhos, 0, sizeof(filhos));
+        memset(vetor, 0, sizeof(vetor));
+
+
+        // ler os filhos
+        for (int i = 0; i < numero_vertices - 1; i++) {
+            int filho;
+            scanf("%d", &filho);
+            filhos[i] = filho;
+
+            if(vetor[filho-1] == 0){
+                aux++;
+            }
+
+            vetor[filho-1]++;
+            
+
+        }
+
+        // printar o vetor
+        printf("vetor: ");
+        imprimir_array(vetor, numero_vertices-1);
+        printf("aux: %d \n", aux);
+
+/*         // ler os filhos
+        for(int i = 1; i < numero_vertices; i++){
+            int filho;
+            scanf("%d", &filho);
+            // volta uma posição no index
+            filhos[i-1] = filho;
+            printf("filhos[%d] = %d \n", i-1, filhos[i-1]);
+
+            // se o filho não tiver sido lido ainda, incrementa o aux
+            if(vetor[filho-1] == 0){
+                aux++;
+            }
+            // incrementa o vetor
+            vetor[filho-1]++;
+        } */
+
+        // adicionar filhos na arvore
+        for (int i = 0; i < numero_vertices - 1; i++) {
+            adicionar_filhos(arvore, filhos[i], i + 2);
+
+        }
+
+        // bfs
+        bfs(arvore, numero_vertices);
+
+        // infectar
         /* 
         Logica para infectar:
             * tipos de infecção
@@ -495,297 +605,36 @@ loop de testes
                 - incrementar o tempo
         */
 
-int main() {
-    // 1665C - Infection Tree (https://codeforces.com/contest/1665/problem/C)
-    
-    // numero de testes
-    int numero_testes;
-    scanf("%d", &numero_testes);
 
-    // loop de testes
-    while(numero_testes--){
+        int tempo=0;
 
-        // numero de vertices
-        int numero_vertices;
-        scanf("%d", &numero_vertices);
+
+        // infectar toda a arvore
+        // infectar_arvore_toda (arvore, numero_vertices);
+        //tempo = tempo_minimo_infectar_todos(arvore, numero_vertices);
+        //printf("%d\n", tempo);
+
+
+        // printa se todos os vertices estao infectados
+        //printa_todos_infectados(arvore, numero_vertices);
+
         
-
-        // criar arvore e a raiz é 1
-        ArvN *arvore = criar_arvore(numero_vertices);
-
-        // array para guardar os filhos numero de vertices - 1
-        // int filhos[numero_vertices-1];
-        int vetor[20000];
-
-        // array dinamico para guardar os filhos numero de vertices - 1
-        int *filhos = (int *) malloc((numero_vertices - 1) * sizeof(int));
-        // int *vetor = (int *) malloc((numero_vertices - 1) * sizeof(int));
-        // int *vetor = (int *) malloc((20000) * sizeof(int));
-
-        int aux = 0;
-
-        // zerar filhos
-        memset(filhos, 0, sizeof(filhos));
-        memset(vetor, 0, sizeof(vetor));
-
-
-        // ler os filhos
-        for(int i = 1; i < numero_vertices; i++){
-            int filho;
-            scanf("%d", &filho);
-            // volta uma posição no index
-            filhos[i-1] = filho;
-            //printf("filhos[%d] = %d \n", i-1, filhos[i-1]);
-
-            // se o filho não tiver sido lido ainda, incrementa o aux
-            if(vetor[filho-1] == 0){
-                aux++;
-            }
-            // incrementa o vetor
-            vetor[filho-1]++;
-        }
-
-        //qsort(filhos, numero_vertices - 1, sizeof(int), cmp_reverse);
-        qsort(vetor, numero_vertices, sizeof(int), cmp_reverse);
-        // printf("filhos ordenados: ");
-        // imprimir_array(filhos, numero_vertices - 1);
-
-        // adicionar filhos na arvore
-        for (int i = 0; i < numero_vertices - 1; i++) {
-            //printf("filhos[%d] = %d\n", i, filhos[i]);
-            adicionar_filhos(arvore, filhos[i], i + 2);
-
-        }
-
-        // bfs
-        //bfs(arvore, numero_vertices);
-        // recebe o retorno de bfs
-        //ArvN *arvore_bfs = bfs(arvore, numero_vertices);
-
-        int maior = 0;
-        int index_maior = 0;
-        int len = 0;
-        int resposta = 0;
-
-        // printf("\nPRIMEIRA VERIFICA: ");
-        for(int i = 0; i < numero_vertices; i++){
-            // se o numero de filhos for maior que 0
-            if(vetor[i] > 0) {
-                // o certo e -= aux - i, porque ele vale pra casos extremos
-                vetor[i] -= aux -i; // (aux -1 = erro em caso grande d+)diminui o numero de filhos do parente
-            
-                vetor[i] = max(0, vetor[i]); // se o numero de filhos for menor que 0, ele vira 0
-
-                resposta++; // incrementa a resposta
-            
-                if(vetor[i] > maior){ // se o numero de filhos for maior que o maior
-                    maior = vetor[i]; // o maior recebe o numero de filhos
-                    index_maior = i; // o index do maior recebe o index do numero de filhos
-                
-                }
-            }
-            len++;
-        }
-/* 
-        // primeira verificação com filhos, faz igual ao de cima mas com filhos
-        for (int i = 0; i < numero_vertices - 1; i++) {
-            // se o numero de filhos for maior que 0
-            if(filhos[i] > 0) {
-                // o certo e -= aux - i, porque ele vale pra casos extremos
-                filhos[i] -= aux -i; // (aux -1 = erro em caso grande d+)diminui o numero de filhos do parente
-            
-                filhos[i] = max(0, filhos[i]); // se o numero de filhos for menor que 0, ele vira 0
-
-                resposta++; // incrementa a resposta
-            
-                if(filhos[i] > maior){ // se o numero de filhos for maior que o maior
-                    maior = filhos[i]; // o maior recebe o numero de filhos
-                    index_maior = i; // o index do maior recebe o index do numero de filhos
-                
-                }
-            }
-            len++;
-        }
- */
-
-        // printf("maior = %d index_maior = %d len = %d resposta = %d \n", maior, index_maior, len, resposta);
-
-        qsort(vetor, numero_vertices, sizeof(int), cmp_reverse);
-
-        // get nivel
-        //int nivel = contar_nivel(arvore, numero_vertices);
-
-        // printf("\nSEGUNDA VERIFICA: ");
-        while(maior > 0) {
-            maior = 0;  // zera o maior numero de filhos
-            index_maior = 0;    // zera o indice do maior numero de filhos
-
-            // loop para percorrer o vetor
-            for(int i = 0; i < len; i++) {
-
-                // se o numero de filhos for maior que 0
-                if(vetor[i] > 0) {
-                    vetor[i]--; // diminui o numero de filhos
-
-                    // se o numero de filhos for maior que o maior numero de filhos
-                    if(vetor[i] > maior) {
-                        maior = vetor[i]; // atualiza o maior numero de filhos
-                        index_maior = i; // atualiza o indice do maior numero de filhos
-                    }
-                }
-            }
-
-            // se o maior numero de filhos for maior que 0
-            if(maior > 0) {
-                maior--;    // diminui o maior numero de filhos
-                vetor[index_maior]--;   // diminui o numero de filhos do indice do maior numero de filhos
-                resposta++;     // aumenta o numero de segundos
-            }
-        }
-
-        // segunda verificação com filhos, faz igual ao de cima mas com filhos
-/*         while(maior > 0) {
-            maior = 0;  // zera o maior numero de filhos
-            index_maior = 0;    // zera o indice do maior numero de filhos
-
-            // loop para percorrer o vetor
-            for(int i = 0; i < len; i++) {
-
-                // se o numero de filhos for maior que 0
-                if(filhos[i] > 0) {
-                    filhos[i]--; // diminui o numero de filhos
-
-                    // se o numero de filhos for maior que o maior numero de filhos
-                    if(filhos[i] > maior) {
-                        maior = filhos[i]; // atualiza o maior numero de filhos
-                        index_maior = i; // atualiza o indice do maior numero de filhos
-                    }
-                }
-            }
-
-            // se o maior numero de filhos for maior que 0
-            if(maior > 0) {
-                maior--;    // diminui o maior numero de filhos
-                filhos[index_maior]--;   // diminui o numero de filhos do indice do maior numero de filhos
-                resposta++;     // aumenta o numero de segundos
-            }
-        } */
-
-
-
-
-        // get quantidade de niveis - aux
-        // int quantidade_de_niveis = contar_nivel(arvore_bfs, numero_vertices);
-        // //printf("quantidade_de_niveis: %d\n", quantidade_de_niveis);
-        // //printf("aux = %d\n", aux);
-
-        // // get qnt de filhos
-        // int *qtd_filhos = get_qtd_filhos(arvore, numero_vertices);
-        // ordenar o array de forma decrescente
-        // qsort(qtd_filhos, numero_vertices, sizeof(int), cmp_reverse);
-        
-
-        // imprimir_array(qtd_filhos, numero_vertices);
-
-/* 
-        quantidade_de_niveis: 3 
-        aux 3 
-        Vetor2: 3 2 1 0 0 0 0 
-        resposta:4
-
-        quantidade de niveis 3 
-        aux 3 
-        Vetor2: 2 1 1 0 0 
-        resposta:4
-
-        quantidade de niveis 1 
-        aux 1 
-        Vetor2: 1 0 
-        resposta:2
-
-        quantidade de niveis 3
-        aux 2
-        Vetor2: 1 1 0 
-        resposta:3
-
-        quantidade de niveis 2 
-        aux 1 
-        Vetor2: 5 0 0 0 0 0 
-        resposta:4 
-*/
-
-/* 
-aux 3 
-Vetor2: 3 2 1 0 0 0 0 
-resposta:4
-
-aux 3 
-Vetor2: 2 1 1 0 0 
-resposta:4
-
-aux 1 
-Vetor2: 1 0 
-resposta:2
-
-aux 2 
-Vetor2: 1 1 0 
-resposta:3
-
-aux 1 
-Vetor2: 5 0 0 0 0 0 
-resposta:4
- 
-*/
-
-/* 
-        qtd_filhos: 3 2 1 0 0 0 0 
-        resposta:4
-
-        qtd_filhos: 2 1 1 0 0 
-        resposta:4
-
-        qtd_filhos: 1 0 
-        resposta:2
-
-        qtd_filhos: 1 1 0 
-        resposta:3
-
-        qtd_filhos: 5 0 0 0 0 0 
-        resposta:4
-
-        3 2 0 1 0 0 0 
-        1 0 0 1 2 
-        1 0 
-        1 0 1 
-        5 0 0 0 0 0
-        
-*/
-
-
-
-
-
         // imprimir todos os niveis
-        // Listad **niveis = separar_niveis(arvore, numero_vertices);
-        // imprimir_niveis(niveis, contar_nivel(arvore, numero_vertices));
-        // printf("\n");
+        Listad **niveis = separar_niveis(arvore, numero_vertices);
+        imprimir_niveis(niveis, contar_nivel(arvore, numero_vertices));
+        printf("\n");
 
 
         // imprimir arvore
-        // imprimir_arvore(arvore, numero_vertices);
-        // printf("\n\n");
+        imprimir_arvore(arvore, numero_vertices);
+        printf("\n\n");
 
-        printf("%d\n", resposta+1);
-        
         // desinfectar arvore
         desinfectar(arvore, numero_vertices);
 
         // limpar arvore
         limpar_arvore(arvore, numero_vertices);
 
-        // free nos arrays
-        free(filhos);
-        //free(vetor);
     }
     
 
