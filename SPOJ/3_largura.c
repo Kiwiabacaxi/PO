@@ -373,6 +373,14 @@ void imprimir_niveis(Listad **niveis, int n) {
     }
 }
 
+// printar o ponteiro da arvore
+void print_arvore(ArvN *arvore, int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%p ", &arvore[i]);
+    }
+    printf("\n");
+}
+
 
 // -----------------// :?::::???? // ----------------- //
 
