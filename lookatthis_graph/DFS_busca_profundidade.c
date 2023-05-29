@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 // grafos
-// BFS - breadth-first search ou busca em largura
+// DFS - depth-first search ou busca em profundidade
 
 // -------------------- // FILA // -------------------- //
 // struct de uma fila
@@ -142,76 +142,35 @@ void libera_grafo(Grafo* g) {
     free(g);
 }
 
-// funcao que preenche grafico - TODO
-
-// -------------------- // BUSCA EM LARGURA // -------------------- //
-// funcao que realiza a busca em largura
-void busca_largura(Grafo* g, int inicio) {
-    int* visitados = (int*) malloc(g->num_vertices * sizeof(int));
-    int i;
-    for (i = 0; i < g->num_vertices; i++) {
-        visitados[i] = 0;
+// DFS - busca em profundidade
+void dfs(Grafo* g, int vertice, int* visitados) {
+    visitados[vertice] = 1;
+    printf("%d ", vertice);
+    No* atual = g->lista_adj[vertice];
+    while (atual != NULL) {
+        if (!visitados[atual->vertice]) {
+            dfs(g, atual->vertice, visitados);
+        }
+        atual = atual->prox;
     }
+}
+
+// BFS - busca em largura
+void bfs(Grafo* g, int vertice, int* visitados) {
     Fila* f = cria_fila();
-    insere_fila(f, inicio);
-    visitados[inicio] = 1;
+    visitados[vertice] = 1;
+    insere_fila(f, vertice);
     while (!fila_vazia(f)) {
-        int vertice = remove_fila(f);
-        printf("%d ", vertice);
-        No* atual = g->lista_adj[vertice];
+        int v = remove_fila(f);
+        printf("%d ", v);
+        No* atual = g->lista_adj[v];
         while (atual != NULL) {
             if (!visitados[atual->vertice]) {
-                insere_fila(f, atual->vertice);
                 visitados[atual->vertice] = 1;
+                insere_fila(f, atual->vertice);
             }
             atual = atual->prox;
         }
     }
-    free(visitados);
     libera_fila(f);
-}
-
-// printa o grafo
-void printa_grafo(Grafo* g) {
-    int i;
-    for (i = 0; i < g->num_vertices; i++) {
-        printf("%d: ", i);
-        No* atual = g->lista_adj[i];
-        while (atual != NULL) {
-            printf("%d ", atual->vertice);
-            atual = atual->prox;
-        }
-        printf("\n");
-    }
-}
-
-
-// -------------------- // MAIN // -------------------- //
-int main() {
-
-    // criar um grafo com 20 vertices
-    Grafo* g = cria_grafo(20);
-
-    // loop para inserir as arestas
-/*     int i;
-    for (i = 0; i < 19; i++) {
-        insere_aresta(g, i, i + 1);
-    } */
-
-    // inserir as arestas
-    insere_aresta(g, 0, 1);
-    insere_aresta(g, 0, 2);
-    insere_aresta(g, 0, 3);
-    insere_aresta(g, 1, 4);
-    insere_aresta(g, 1, 5);
-    insere_aresta(g, 2, 6);
-    insere_aresta(g, 2, 7);
-
-    // realizar a busca em largura
-    busca_largura(g, 0);
-
-
-
-    libera_grafo(g);
-    return 0;
 }
