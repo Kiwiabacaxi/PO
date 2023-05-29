@@ -205,19 +205,29 @@ int existe_caminho_largura(Grafo* g, int origem, int destino) {
     Fila* f = cria_fila();
     insere_fila(f, origem);
     visitados[origem] = 1;
+    
+    // enquanto a fila nao estiver vazia
     while (!fila_vazia(f)) {
+        // remove o primeiro elemento da fila
         int vertice = remove_fila(f);
+        // se o vertice removido for o destino, entao existe caminho
         No* atual = g->lista_adj[vertice];
+
+        // percorre a lista de adjacencia do vertice removido
         while (atual != NULL) {
+            // se o vertice atual for o destino, entao existe caminho
             if (atual->vertice == destino) {
                 free(visitados);
                 libera_fila(f);
                 return 1;
             }
+            // se o vertice atual nao foi visitado, entao o insere na fila
             if (!visitados[atual->vertice]) {
                 insere_fila(f, atual->vertice);
                 visitados[atual->vertice] = 1;
             }
+            
+            // vai para o proximo vertice da lista de adjacencia
             atual = atual->prox;
         }
     }
