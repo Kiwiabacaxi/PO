@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <limits.h>
 
 // grafos
 // BFS - breadth-first search ou busca em largura
@@ -157,11 +159,12 @@ void preenche_arestas(Grafo* g) {
 // printa o grafo - printa as listas de adjacencia
 void printa_grafo(Grafo* g) {
     int i;
+    // adiciona 1 ao vertice para printar de 1 a n
     for (i = 0; i < g->num_vertices; i++) {
-        printf("%d: ", i);
+        printf("%d: ", i+1);
         No* atual = g->lista_adj[i];
         while (atual != NULL) {
-            printf("%d ", atual->vertice);
+            printf("%d ", atual->vertice+1);
             atual = atual->prox;
         }
         printf("\n");
@@ -181,7 +184,7 @@ void busca_largura(Grafo* g, int inicio) {
     visitados[inicio] = 1;
     while (!fila_vazia(f)) {
         int vertice = remove_fila(f);
-        printf("%d ", vertice);
+        printf("%d ", vertice+1);
         No* atual = g->lista_adj[vertice];
         while (atual != NULL) {
             if (!visitados[atual->vertice]) {
@@ -240,7 +243,7 @@ int existe_caminho_largura(Grafo* g, int origem, int destino) {
 // funcao recursiva que realiza a busca em profundidade
 void busca_profundidade_rec(Grafo* g, int inicio, int* visitados) {
     visitados[inicio] = 1;
-    printf("%d ", inicio);
+    printf("%d ", inicio+1); // printa o vertice + 1
     No* atual = g->lista_adj[inicio];
     while (atual != NULL) {
         if (!visitados[atual->vertice]) {
@@ -273,6 +276,245 @@ int existe_caminho_profundidade(Grafo* g, int origem, int destino) {
     free(visitados);
     return resultado;
 }
+
+// -------------------- // DIJKSTRA // -------------------- //
+// funcao que retorna o vertice com a menor distancia
+int menor_distancia(int* distancias, int* visitados, int num_vertices) {
+    int i;
+    int min = -1;
+    for (i = 0; i < num_vertices; i++) {
+        if (!visitados[i] && (min == -1 || distancias[i] < distancias[min])) {
+            min = i;
+        }
+    }
+    return min;
+}
+
+// funcao que realiza o algoritmo de Dijkstra com pesos iguais
+void dijkstra(Grafo* g, int inicio) {
+    int* distancias = (int*) malloc(g->num_vertices * sizeof(int));
+    int* visitados = (int*) malloc(g->num_vertices * sizeof(int));
+    int* anteriores = (int*) malloc(g->num_vertices * sizeof(int));
+    int i;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = INT_MAX;
+        visitados[i] = 0;
+        anteriores[i] = -1;
+    }
+    distancias[inicio] = 0;
+    while (1) {
+        int vertice = menor_distancia(distancias, visitados, g->num_vertices);
+        if (vertice == -1) {
+            break;
+        }
+        visitados[vertice] = 1;
+        No* atual = g->lista_adj[vertice];
+        while (atual != NULL) {
+            int distancia = distancias[vertice] + 1; // peso igual a 1
+            if (distancia < distancias[atual->vertice]) {
+                distancias[atual->vertice] = distancia;
+                anteriores[atual->vertice] = vertice;
+            }
+            atual = atual->prox;
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        // lembrando de somar 1 ao vertice para printar
+        printf("Distancia de %d para %d: %d\n", inicio+1, i+1, distancias[i]);
+    }
+    free(distancias);
+    free(visitados);
+    free(anteriores);
+}
+
+// funcao que realiza o algoritmo de Dijkstra com pesos diferentes
+/* void dijkstra(Grafo* g, int inicio) {
+    int* distancias = (int*) malloc(g->num_vertices * sizeof(int));
+    int* visitados = (int*) malloc(g->num_vertices * sizeof(int));
+    int* anteriores = (int*) malloc(g->num_vertices * sizeof(int));
+    int i;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = INT_MAX;
+        visitados[i] = 0;
+        anteriores[i] = -1;
+    }
+    distancias[inicio] = 0;
+    while (1) {
+        int vertice = menor_distancia(distancias, visitados, g->num_vertices);
+        if (vertice == -1) {
+            break;
+        }
+        visitados[vertice] = 1;
+        No* atual = g->lista_adj[vertice];
+        while (atual != NULL) {
+            int distancia = distancias[vertice] + atual->peso;
+            if (distancia < distancias[atual->vertice]) {
+                distancias[atual->vertice] = distancia;
+                anteriores[atual->vertice] = vertice;
+            }
+            atual = atual->prox;
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        printf("Distancia de %d para %d: %d\n", inicio, i, distancias[i]);
+    }
+    free(distancias);
+    free(visitados);
+    free(anteriores);
+}
+*/
+
+// -------------------- // FLOYD WARSHALL // -------------------- //
+// funcao que realiza o algorithmo de Floyd Warshall com pesos iguais
+void floyd_warshall(Grafo* g) {
+    int** distancias = (int**) malloc(g->num_vertices * sizeof(int*));
+    int** anteriores = (int**) malloc(g->num_vertices * sizeof(int*));
+    int i, j, k;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = (int*) malloc(g->num_vertices * sizeof(int));
+        anteriores[i] = (int*) malloc(g->num_vertices * sizeof(int));
+        for (j = 0; j < g->num_vertices; j++) {
+            distancias[i][j] = INT_MAX;
+            anteriores[i][j] = -1;
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i][i] = 0;
+        No* atual = g->lista_adj[i];
+        while (atual != NULL) {
+            distancias[i][atual->vertice] = 1;
+            anteriores[i][atual->vertice] = i;
+            atual = atual->prox;
+        }
+    }
+    for (k = 0; k < g->num_vertices; k++) {
+        for (i = 0; i < g->num_vertices; i++) {
+            for (j = 0; j < g->num_vertices; j++) {
+                if (distancias[i][k] != INT_MAX && distancias[k][j] != INT_MAX && distancias[i][k] + distancias[k][j] < distancias[i][j]) {
+                    distancias[i][j] = distancias[i][k] + distancias[k][j];
+                    anteriores[i][j] = anteriores[k][j];
+                }
+            }
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        for (j = 0; j < g->num_vertices; j++) {
+            printf("Distancia de %d para %d: %d\n", i, j, distancias[i][j]);
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        free(distancias[i]);
+        free(anteriores[i]);
+    }
+    free(distancias);
+    free(anteriores);
+}
+
+// funcao que realiza o algoritmo de Floyd Warshall com pesos diferentes
+/* void floyd_warshall(Grafo* g) {
+    int** distancias = (int**) malloc(g->num_vertices * sizeof(int*));
+    int** anteriores = (int**) malloc(g->num_vertices * sizeof(int*));
+    int i, j, k;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = (int*) malloc(g->num_vertices * sizeof(int));
+        anteriores[i] = (int*) malloc(g->num_vertices * sizeof(int));
+        for (j = 0; j < g->num_vertices; j++) {
+            distancias[i][j] = INT_MAX;
+            anteriores[i][j] = -1;
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i][i] = 0;
+        No* atual = g->lista_adj[i];
+        while (atual != NULL) {
+            distancias[i][atual->vertice] = atual->peso;
+            anteriores[i][atual->vertice] = i;
+            atual = atual->prox;
+        }
+    }
+    for (k = 0; k < g->num_vertices; k++) {
+        for (i = 0; i < g->num_vertices; i++) {
+            for (j = 0; j < g->num_vertices; j++) {
+                if (distancias[i][k] != INT_MAX && distancias[k][j] != INT_MAX && distancias[i][k] + distancias[k][j] < distancias[i][j]) {
+                    distancias[i][j] = distancias[i][k] + distancias[k][j];
+                    anteriores[i][j] = anteriores[k][j];
+                }
+            }
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        for (j = 0; j < g->num_vertices; j++) {
+            printf("Distancia de %d para %d: %d\n", i, j, distancias[i][j]);
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        free(distancias[i]);
+        free(anteriores[i]);
+    }
+    free(distancias);
+    free(anteriores);
+} */
+
+// -------------------- // BELLMAN FORD // -------------------- //
+// funcao que realiza o algoritmo de Bellman Ford com pesos iguais
+void bellman_ford(Grafo* g, int inicio) {
+    int* distancias = (int*) malloc(g->num_vertices * sizeof(int));
+    int* anteriores = (int*) malloc(g->num_vertices * sizeof(int));
+    int i, j;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = INT_MAX;
+        anteriores[i] = -1;
+    }
+    distancias[inicio] = 0;
+    for (i = 0; i < g->num_vertices - 1; i++) {
+        for (j = 0; j < g->num_vertices; j++) {
+            No* atual = g->lista_adj[j];
+            while (atual != NULL) {
+                int distancia = distancias[j] + 1; // peso = 1
+                if (distancia < distancias[atual->vertice]) {
+                    distancias[atual->vertice] = distancia;
+                    anteriores[atual->vertice] = j;
+                }
+                atual = atual->prox;
+            }
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        printf("Distancia de %d para %d: %d\n", inicio, i, distancias[i]);
+    }
+    free(distancias);
+    free(anteriores);
+}
+
+// funcao que realiza o algoritmo de Bellman Ford com pesos diferentes
+/* void bellman_ford(Grafo* g, int inicio) {
+    int* distancias = (int*) malloc(g->num_vertices * sizeof(int));
+    int* anteriores = (int*) malloc(g->num_vertices * sizeof(int));
+    int i, j;
+    for (i = 0; i < g->num_vertices; i++) {
+        distancias[i] = INT_MAX;
+        anteriores[i] = -1;
+    }
+    distancias[inicio] = 0;
+    for (i = 0; i < g->num_vertices - 1; i++) {
+        for (j = 0; j < g->num_vertices; j++) {
+            No* atual = g->lista_adj[j];
+            while (atual != NULL) {
+                int distancia = distancias[j] + atual->peso;
+                if (distancia < distancias[atual->vertice]) {
+                    distancias[atual->vertice] = distancia;
+                    anteriores[atual->vertice] = j;
+                }
+                atual = atual->prox;
+            }
+        }
+    }
+    for (i = 0; i < g->num_vertices; i++) {
+        printf("Distancia de %d para %d: %d\n", inicio, i, distancias[i]);
+    }
+    free(distancias);
+    free(anteriores);
+} */
 
 // -------------------- // MAIN // -------------------- //
 int main() {
@@ -323,14 +565,25 @@ int main() {
     printf("Caminho por profundidade: ");
 
     // realizar a busca em profundidade
-    // busca_profundidade(g, 0);
+    busca_profundidade(g, 0);
 
     // verificar se existe caminho de 0 para 7
     printf("\nExiste caminho por profundidade %d\n", existe_caminho_profundidade(g, 0, 7));
 
+    // Dijkstra - caminho minimo
+    printf("Dijkstra:\n");
+    dijkstra(g, 0);
+    
+    // Bellman Ford - caminho minimo
+    printf("Bellman Ford:\n");
+    bellman_ford(g, 0);
+
+    // Floyd Warshall - caminho minimo
+    // printf("Floyd Warshall:\n");
+    // floyd_warshall(g);
 
 
-
+    // liberar o grafo
     libera_grafo(g);
     return 0;
 }
