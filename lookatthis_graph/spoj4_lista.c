@@ -292,7 +292,7 @@ int main() {
             insere_aresta(g, y - 1, x - 1);
         }
         
-        // printa_grafo(g);
+        printa_grafo(g);
 
         // verifica se existe uma conexao entre todos os pares de vertices, se existir um vertice sem conexao, o grafo nao eh conexo
         int conexo = 1; // devia ter usado stdbool.h

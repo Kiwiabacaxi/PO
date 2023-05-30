@@ -185,15 +185,23 @@ void printa_grafo(Grafo* g) {
 }
 
 
-// funcao recursiva que realiza a busca em profundidade limitada, ordenando os vertices e excluindo o vertice de origem
+// funcao recursiva que realiza a busca em profundidade limitada
 void busca_profundidade_limitada_rec(Grafo* g, int inicio, int limite, int* visitados) {
+    // marca o vertice como visitado
     visitados[inicio] = 1;
-    printf("%d ", inicio+1);
+
+    // printa o vertice
+    // printf("%d ", inicio+1);
+    
     No* atual = g->lista_adj[inicio];
+    
+    // percorre os vertices adjacentes
     while (atual != NULL) {
+        // se o vertice nao foi visitado e o limite ainda nao foi atingido
         if (!visitados[atual->vertice] && limite > 0) {
             busca_profundidade_limitada_rec(g, atual->vertice, limite-1, visitados);
         }
+        // vai para o proximo vertice adjacente
         atual = atual->prox;
     }
 }
@@ -206,9 +214,23 @@ void busca_profundidade_limitada(Grafo* g, int inicio, int limite) {
         visitados[i] = 0;
     }
     busca_profundidade_limitada_rec(g, inicio, limite, visitados);
-    printf("\n");
+    // printf("\n");
     free(visitados);
 }
+
+// funcao que realiza a busca em profundidade limitada e retorna um array com os vertices visitados
+int* busca_profundidade_limitada_retorno(Grafo* g, int inicio, int limite) {
+    int* visitados = (int*) malloc(g->num_vertices * sizeof(int));
+    int i;
+    for (i = 0; i < g->num_vertices; i++) {
+        visitados[i] = 0;
+    }
+    busca_profundidade_limitada_rec(g, inicio, limite, visitados);
+    // printf("\n");
+    return visitados;
+}
+
+
 
 // -------------------- // BUSCA EM LARGURA // -------------------- //
 // funcao que realiza a busca em largura
@@ -599,15 +621,31 @@ int main() {
         printf("Teste %d\n", teste);
 
         // busca em largura a partir de L, com P como limite
-        busca_profundidade_limitada(g, L - 1, P);
+        // busca_profundidade_limitada_retorno(g, L - 1, P);
 
+        // array de vertices visitados
+        int* visitados = (int*) malloc(g->num_vertices * sizeof(int));
+        memset(visitados, 0, g->num_vertices * sizeof(int));
+
+        visitados = busca_profundidade_limitada_retorno(g, L - 1, P);
+
+        // ordena o array de vertices visitados
+        // qsort(visitados, g->num_vertices, sizeof(int), compara);
+
+        // printa os vertices visitados
+        for (i = 0; i < g->num_vertices; i++) {
+            
+            if(visitados[i] && i != L-1)
+                printf("%d ", i + 1);
+            
+        }
 
 
         // printa o grafo
         // printa_grafo(g);
 
 
-        printf("\n");
+        printf("\n\n");
         
         // libera o grafo
         libera_grafo(g);
