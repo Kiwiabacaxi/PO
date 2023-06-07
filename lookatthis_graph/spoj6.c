@@ -91,7 +91,39 @@ Anne: red dumb bad
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXN 21
+#define MAXN 1000
+
+// -------------------- // FILA // -------------------- //
+typedef struct Fila {
+    int* elementos;
+    int tamanho;
+    int inicio;
+    int fim;
+} Fila;
+
+Fila* criar_fila(int tamanho) {
+    Fila* fila = (Fila*) malloc(sizeof(Fila));
+    fila->elementos = (int*) malloc(tamanho * sizeof(int));
+    fila->tamanho = tamanho;
+    fila->inicio = 0;
+    fila->fim = 0;
+    return fila;
+}
+
+void enfileirar(Fila* fila, int elemento) {
+    fila->elementos[fila->fim] = elemento;
+    fila->fim = (fila->fim + 1) % fila->tamanho;
+}
+
+int desenfileirar(Fila* fila) {
+    int elemento = fila->elementos[fila->inicio];
+    fila->inicio = (fila->inicio + 1) % fila->tamanho;
+    return elemento;
+}
+
+int fila_vazia(Fila* fila) {
+    return fila->inicio == fila->fim;
+}
 
 // -------------------- // LISTA // -------------------- //
 // Estrutura de um nó
@@ -287,7 +319,7 @@ void liberar_memoria(Grafo* grafo) {
 
 // -------------------- // BUSCA EM PROFUNDIDADE // -------------------- //
 // Função de busca em profundidade - v1 - NAO FUNCIONA Ñ SEI PQ
-/* void dfs(Grafo* grafo, int x, int t1, int t2, char* a1, char* a2, char* a3) {
+void dfs(Grafo* grafo, int x, int t1, int t2, char* a1, char* a2, char* a3) {
     grafo->processado[x] = 1;
     grafo->tamanho_atributos[x]--;
 
@@ -304,7 +336,7 @@ void liberar_memoria(Grafo* grafo) {
         if (grafo->processado[v] == 0) dfs(grafo, v, t1, t2, a1, a2, a3);
         temp = temp->proximo;
     }
-} */
+}
 
 /* 
 101 de como deve ser a função dfs
@@ -334,7 +366,7 @@ ergo - se o grau do spammer for menor que t1, ele recebe a1
 */
 
 // Função de busca em profundidade com pilha - v2 - FUNCIONA
-void dfs(Grafo* grafo, int luis_espalha_lixo, int t1, int t2, char* a1, char* a2, char* a3) {
+/* void dfs(Grafo* grafo, int luis_espalha_lixo, int t1, int t2, char* a1, char* a2, char* a3) {
     // Cria uma pilha e coloca o vértice inicial nela
     Pilha* pilha = criar_pilha(grafo->num_vertices);
     empilhar(pilha, luis_espalha_lixo);
@@ -368,7 +400,48 @@ void dfs(Grafo* grafo, int luis_espalha_lixo, int t1, int t2, char* a1, char* a2
             }
         }
     }
+} */
+
+
+// -------------------- // BUSCA EM LARGURA // -------------------- //
+// busca em largura no lugar da busca em profundidade
+void bfs(Grafo* grafo, int luis_espalha_lixo, int t1, int t2, char* a1, char* a2, char* a3) {
+    // Cria uma fila e coloca o vértice inicial nela
+    Fila* fila = criar_fila(grafo->num_vertices);
+    enfileirar(fila, luis_espalha_lixo);
+
+    // Enquanto a fila não estiver vazia
+    while (!fila_vazia(fila)) {
+        // Desenfileira um vértice e o processa
+        int v = desenfileirar(fila);
+
+        // Se o vértice ainda não foi processado
+        if (grafo->processado[v] == 0) {
+            grafo->processado[v] = 1;
+            grafo->tamanho_atributos[v]--;
+
+            // Adiciona o atributo correspondente
+            // strcpy para copiar as strings a1, a2 e a3 para os atributos dos vértices.
+            if (grafo->grau[v] < t1)
+                strcpy(grafo->atributos[v][grafo->tamanho_atributos[v]++], a1);
+            else if (grafo->grau[v] < t2)
+                strcpy(grafo->atributos[v][grafo->tamanho_atributos[v]++], a2);
+            else
+                strcpy(grafo->atributos[v][grafo->tamanho_atributos[v]++], a3);
+
+            Node* temp = grafo->lista_adjacencia[v].cabeca;
+            while (temp != NULL) {
+                int u = temp->vertice;
+                if (grafo->processado[u] == 0) {
+                    enfileirar(fila, u);
+                }
+                temp = temp->proximo;
+            }
+        }
+    }
 }
+
+
 
 // -------------------- // MAIN // -------------------- //
 int main() {
@@ -377,7 +450,7 @@ int main() {
         // Criar grafo de tamanho n + 1
         Grafo* grafo = criar_grafo(n + 1);
 
-        // Adicionar arestas
+        // 1 - Adicionar arestas
         for (int i = 1; i <= n; i++) {
             int j;
             while (scanf("%d", &j) && j != 0) {
@@ -386,48 +459,23 @@ int main() {
         }
 
         // Imprimir grafo para ver se está tudo certo
+        // printf("Primeiro grafo:\n");
         // imprimir_grafo(grafo);
 
 
-/*         // leitura dos atributos ate ser 0
-        while(fgets(str, 10000, stdin) && str[0] != '0') {
-            // printf("%s", str);
-            // separar a string str em substrings
-            char* token = strtok(str, " ");
-
-            // ex 1     2   4   poor    rich    millionaire
-            //    ini   t1  t2  a1      a2      a3
-            // enquanto houver substrings
-            while (token != NULL) {
-                printf("%s\n", token);
-                if (ini == 0) {
-                    ini = atoi(token);
-                } else if (t1 == 0) {
-                    t1 = atoi(token);
-                } else if (t2 == 0) {
-                    t2 = atoi(token);
-                } else if (a1[0] == 0) {
-                    strcpy(a1, token);
-                } else if (a2[0] == 0) {
-                    strcpy(a2, token);
-                } else if (a3[0] == 0) {
-                    strcpy(a3, token);
-                }
-                token = strtok(NULL, " ");
-            }
-            printf("%d %d %d %s %s %s\n", ini, t1, t2, a1, a2, a3);
-            // printf("%s %s %s", a1, a2, a3);
-        } */
-
-        // P identificando a pessoa originadora do SPAM
+        // 2 - P identificando a pessoa originadora do SPAM
         int inicio_spam = 0;
-
-        while (scanf("%d", &inicio_spam) && inicio_spam != 0) {
+        while (scanf("%d", &inicio_spam) && inicio_spam != 0 && inicio_spam <= n) {
             // T1 e T2 representando os valores limites
             int t1, t2;
 
             // os três atributos A1, A2 e A3 (cada atributo é uma palavra de não mais que vinte letras)
             char a1[MAXN], a2[MAXN], a3[MAXN];
+
+            // limpar as strings
+            memset(a1, 0, sizeof(a1));
+            memset(a2, 0, sizeof(a2));
+            memset(a3, 0, sizeof(a3));
 
             // Ler os valores
             scanf("%d %d %s %s %s", &t1, &t2, a1, a2, a3);
@@ -438,6 +486,7 @@ int main() {
                 grafo->processado[i] = 0;
                 // printf("%d\n", grafo->tamanho_atributos[i]);
                 
+                
                 // copiar os atributos
                 strcpy(grafo->atributos[i][grafo->tamanho_atributos[i]++], a1);
                 // printf("%d\n", grafo->tamanho_atributos[i]);
@@ -445,9 +494,18 @@ int main() {
 
             // chamar a função de busca em profundidade
             dfs(grafo, inicio_spam, t1, t2, a1, a2, a3);
+            // printf("%d\n", dfs2(grafo, inicio_spam, t1, t2, a1, a2, a3));
+            // chamar a função de busca em largura
+            // bfs(grafo, inicio_spam, t1, t2, a1, a2, a3);
+
         }
 
-        // Imprimir os resultados
+        // Imprimir grafo para ver se está tudo certo
+        // printf("Segundo grafo\n");
+        // imprimir_grafo(grafo);
+        
+
+        // 3 - Imprimir os resultados
         for (int i = 1; i <= n; i++) {
             // receber o nome de cada pessoa postumamente
             char nome[21];
@@ -461,28 +519,6 @@ int main() {
             }
             printf("\n");
         }
-
-
-        // Liberar a memória alocada
-        /* for (int i = 0; i <= n; i++) {
-            Node* temp = grafo->lista_adjacencia[i].cabeca;
-            while (temp != NULL) {
-                Node* next = temp->proximo;
-                free(temp);
-                temp = next;
-            }
-            for (int j = 0; j < MAXN; j++) {
-                free(grafo->atributos[i][j]);
-            }
-            free(grafo->atributos[i]);
-        }
-        free(grafo->lista_adjacencia);
-        free(grafo->atributos);
-        free(grafo->tamanho_atributos);
-        free(grafo->processado);
-        free(grafo->grau);
-        free(grafo); */
-
 
         // função de liberação de memória da baguncinha
         liberar_memoria(grafo);
