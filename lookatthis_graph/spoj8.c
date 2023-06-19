@@ -23,7 +23,7 @@ Para cada caso de teste da entrada seu programa deve imprimir uma única linha, 
 
 
 // Função que faz a intercalação de dois subvetores ordenados
-void merge(int vet[], int left, int middle, int right, int *counter) {
+void merge(int vet[], int left, int middle, int right, int *contador) {
     int i, j, k;
     int n1 = middle - left + 1;
     int n2 = right - middle;
@@ -50,7 +50,7 @@ void merge(int vet[], int left, int middle, int right, int *counter) {
             i++;
         } else {
             vet[k] = R[j];
-            (*counter) += n1 - i; // Incrementa o contador de inversões
+            (*contador) += n1 - i; // Incrementa o contador de inversões
             j++;
         }
         k++;
