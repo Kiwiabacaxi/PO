@@ -15,7 +15,6 @@ Seu programa deve produzir uma única linha com um inteiro representando a menor
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
 #define MAXN 10100
@@ -60,6 +59,14 @@ int main() {
     // Leitura das arestas do grafo
     // Inicializa o grafo
     vetor grafo[MAXN];
+
+    // Inicializa os vetores - ISSO AQUI Q TAVA DANDO ERRO
+    for (int i = 1; i <= N; i++) {
+        grafo[i].dados = NULL;
+        grafo[i].tamanho = 0;
+        grafo[i].capacidade = 0;
+    }
+
 
     /* 
     1 - Leitura dos dados de entrada para cada aresta de um grafo
